@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход | ООО "ТДМ"</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(120deg, #fff6e1 0%, #ffae45 100%);
+            min-height: 100vh;
+        }
+        .login-box {
+            max-width: 380px;
+            margin: 60px auto;
+            padding: 40px 35px 30px 35px;
+            border-radius: 22px;
+            background: #fff;
+            box-shadow: 0 6px 36px rgba(255, 139, 19, 0.20);
+        }
+        .logo-img {
+            display: block;
+            margin: 0 auto 30px auto;
+            width: 100px;
+            height: 100px;
+            border-radius: 22px;
+            background: #ff7f1f;
+            padding: 12px;
+            object-fit: cover;
+            box-shadow: 0 0 18px rgba(255,127,31,0.14);
+        }
+        .form-label {
+            font-weight: 500;
+            color: #d63c13;
+        }
+        .btn-primary {
+            background: #ff7f1f;
+            border: none;
+        }
+        .btn-primary:hover {
+            background: #d63c13;
+        }
+        .link-secondary {
+            color: #ff7f1f !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box shadow">
+        <img src="{{ url_for('static', filename='logo_tdm.png') }}" alt="Лого ТДМ" class="logo-img">
+        <h2 class="text-center mb-4" style="color:#d63c13; font-weight: bold;">
+        Вход в систему ООО &laquo;ТДМ&raquo;
+        </h2>
+
+        <form method="post">
+            <div class="mb-3">
+                <label for="email" class="form-label">E-mail</label>
+                <input type="email" class="form-control" id="email" name="email" required autocomplete="username">
+            </div>
+            <div class="mb-4">
+                <label for="password" class="form-label">Пароль</label>
+                <input type="password" class="form-control" id="password" name="password" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn btn-primary w-100 mb-3">Войти</button>
+            <div class="text-center">
+                <a href="{{ url_for('register') }}" class="link-secondary">Нет аккаунта? Регистрация</a>
+            </div>
+            <div class="text-center">
+                <a href="{{ url_for('reset_password') }}" class="link-secondary">Забыли пароль?</a>
+            </div>
+
+        </form>
+        {% if error %}
+            <div class="alert alert-danger text-center" role="alert">{{ error }}</div>
+        {% endif %}
+
+    </div>
+</body>
+</html>
