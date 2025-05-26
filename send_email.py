@@ -4,7 +4,7 @@ from email.mime.text import MIMEText
 def send_confirmation_email(to_email, token):
     from_email = "ooo.tdm00@gmail.com"  # или Яндекс
     password = "xgen qxfs kvfv krih"
-    confirm_link = f"http://127.0.0.1:5000/confirm/{token}"
+    confirm_link = f"https://ooo-tdm.onrender.com/confirm/{token}"
     subject = "Подтвердите регистрацию в ООО «ТДМ»"
     body = f"Здравствуйте!\n\nДля завершения регистрации перейдите по ссылке:\n{confirm_link}\n\nЕсли вы не регистрировались — просто проигнорируйте это письмо."
     msg = MIMEText(body, "plain", "utf-8")
@@ -18,7 +18,7 @@ def send_confirmation_email(to_email, token):
 def send_reset_email(to_email, token):
     from_email = "ooo.tdm00@gmail.com"  # или Яндекс
     password = "xgen qxfs kvfv krih"
-    reset_link = f"http://127.0.0.1:5000/reset/{token}"
+    reset_link = f"https://ooo-tdm.onrender.com/reset/{token}"
     subject = "Восстановление пароля в ООО «ТДМ»"
     body = f"Для сброса пароля перейдите по ссылке:\n{reset_link}\n\nЕсли вы не запрашивали сброс пароля — просто проигнорируйте это письмо."
     msg = MIMEText(body, "plain", "utf-8")
