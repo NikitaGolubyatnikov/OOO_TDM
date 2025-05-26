@@ -26,6 +26,14 @@ def init_db():
         # Тестовый админ
         cursor.execute("INSERT INTO users (email, password, is_confirmed, role) VALUES (?, ?, ?, ?)",
                        ('admin@tdm.local', 'admin', 1, 'admin'))
+
+        cursor.execute("INSERT INTO users (email, password, is_confirmed, role) VALUES (?, ?, ?, ?)",
+                       ('newsadmin@tdm.local', 'admin', 1, 'news_admin'))
+
+        # Тестовый обычный сотрудник
+        cursor.execute("INSERT INTO users (email, password, is_confirmed, role) VALUES (?, ?, ?, ?)",
+                       ('employee@tdm.local', 'admin', 1, 'employee'))
+
         conn.commit()
         conn.close()
 
@@ -148,7 +156,27 @@ def login():
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    return render_template('dashboard.html', role=session['role'])
+
+    role = session.get('role')
+
+    if role == 'admin':
+        return render_template('admin_dashboard.html')
+    elif role == 'news_admin':
+        return render_template('news_admin_dashboard.html')
+    else:
+        return render_template('employee_dashboard.html')
+
+@app.route('/admin/users')
+def admin_users():
+    if 'user_id' not in session or session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, email, role, is_confirmed FROM users")
+    users = cursor.fetchall()
+    conn.close()
+    return render_template('admin_users.html', users=users)
 
 @app.route('/logout')
 def logout():
