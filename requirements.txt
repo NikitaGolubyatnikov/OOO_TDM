@@ -1,1 +1,7 @@
 Flask
+jinja2
+itsdangerous
+click
+MarkupSafe
+blinker
+gunicorn
