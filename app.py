@@ -1,43 +1,30 @@
 from flask import Flask, render_template, request, redirect, url_for, session
-import sqlite3
+from flask_sqlalchemy import SQLAlchemy
 import os
 import secrets
-from send_email import send_confirmation_email
+from send_email import send_confirmation_email, send_reset_email
 
 app = Flask(__name__)
 app.secret_key = 'd--385vdi0xgs0^)!j0#n70hcqq+6ik4h5j%mzx5=b!7fda=o3'
 
-DB_NAME = 'app.db'
+# Подключение к PostgreSQL
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "postgresql://ooo_tdm_user:rvZtUKexokiupiyU0iYAl45qAwt8uvwd@dpg-d0qu4g6mcj7s73edjv5g-a.oregon-postgres.render.com/ooo_tdm")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-def init_db():
-    if not os.path.exists(DB_NAME):
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
-        cursor.execute('''
-            CREATE TABLE users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                email TEXT NOT NULL UNIQUE,
-                password TEXT NOT NULL,
-                is_confirmed INTEGER DEFAULT 0,
-                confirm_token TEXT,
-                role TEXT NOT NULL DEFAULT 'employee'
-            )
-        ''')
-        # Тестовый админ
-        cursor.execute("INSERT INTO users (email, password, is_confirmed, role) VALUES (?, ?, ?, ?)",
-                       ('admin@tdm.local', 'admin', 1, 'admin'))
+db = SQLAlchemy(app)
 
-        cursor.execute("INSERT INTO users (email, password, is_confirmed, role) VALUES (?, ?, ?, ?)",
-                       ('newsadmin@tdm.local', 'admin', 1, 'news_admin'))
+# Модель пользователя
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(128), nullable=False)
+    is_confirmed = db.Column(db.Boolean, default=False)
+    confirm_token = db.Column(db.String(64), nullable=True)
+    role = db.Column(db.String(32), default='employee')
 
-        # Тестовый обычный сотрудник
-        cursor.execute("INSERT INTO users (email, password, is_confirmed, role) VALUES (?, ?, ?, ?)",
-                       ('employee@tdm.local', 'admin', 1, 'employee'))
-
-        conn.commit()
-        conn.close()
-
-init_db()
+# Инициализация БД
+with app.app_context():
+    db.create_all()
 
 @app.route('/')
 def home():
@@ -47,106 +34,70 @@ def home():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    error = None
-    success = None
+    error, success = None, None
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
+        email, password = request.form['email'], request.form['password']
         token = secrets.token_urlsafe(32)
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
-        try:
-            cursor.execute(
-                "INSERT INTO users (email, password, confirm_token) VALUES (?, ?, ?)",
-                (email, password, token)
-            )
-            conn.commit()
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            error = "Пользователь с такой почтой уже существует!"
+        else:
+            user = User(email=email, password=password, confirm_token=token)
+            db.session.add(user)
+            db.session.commit()
             send_confirmation_email(email, token)
             success = "Письмо для подтверждения отправлено на вашу почту!"
-        except sqlite3.IntegrityError:
-            error = "Пользователь с такой почтой уже существует!"
-        conn.close()
     return render_template('register.html', error=error, success=success)
-
 
 @app.route('/confirm/<token>')
 def confirm_email(token):
-    success = None
-    error = None
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute("SELECT id FROM users WHERE confirm_token=? AND is_confirmed=0", (token,))
-    user = cursor.fetchone()
+    user = User.query.filter_by(confirm_token=token, is_confirmed=False).first()
     if user:
-        cursor.execute("UPDATE users SET is_confirmed=1, confirm_token=NULL WHERE id=?", (user[0],))
-        conn.commit()
-        success = "Почта подтверждена! Теперь вы можете войти."
-    else:
-        error = "Ссылка недействительна или уже использована."
-    conn.close()
-    return render_template('confirm_result.html', success=success, error=error)
-
+        user.is_confirmed = True
+        user.confirm_token = None
+        db.session.commit()
+        return render_template('confirm_result.html', success="Почта подтверждена! Теперь вы можете войти.")
+    return render_template('confirm_result.html', error="Ссылка недействительна или уже использована.")
 
 @app.route('/reset_password', methods=['GET', 'POST'])
 def reset_password():
-    success = None
-    error = None
+    success, error = None, None
     if request.method == 'POST':
         email = request.form['email']
         token = secrets.token_urlsafe(32)
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
-        cursor.execute("SELECT id FROM users WHERE email=?", (email,))
-        user = cursor.fetchone()
+        user = User.query.filter_by(email=email).first()
         if user:
-            cursor.execute("UPDATE users SET confirm_token=? WHERE id=?", (token, user[0]))
-            conn.commit()
-            from send_email import send_reset_email
+            user.confirm_token = token
+            db.session.commit()
             send_reset_email(email, token)
-        conn.close()
-        success = "Если этот email зарегистрирован, письмо со ссылкой для сброса отправлено."
+        success = "Если этот email зарегистрирован, письмо отправлено."
     return render_template('reset_password.html', success=success, error=error)
-
 
 @app.route('/reset/<token>', methods=['GET', 'POST'])
 def reset_with_token(token):
-    error = None
-    success = None
+    error, success = None, None
+    user = User.query.filter_by(confirm_token=token).first()
     if request.method == 'POST':
-        new_password = request.form['password']
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
-        cursor.execute("SELECT id FROM users WHERE confirm_token=?", (token,))
-        user = cursor.fetchone()
         if user:
-            cursor.execute("UPDATE users SET password=?, confirm_token=NULL WHERE id=?", (new_password, user[0]))
-            conn.commit()
-            conn.close()
+            user.password = request.form['password']
+            user.confirm_token = None
+            db.session.commit()
             success = "Пароль успешно изменён! Теперь войдите с новым паролем."
         else:
             error = "Ссылка устарела или некорректна."
-            conn.close()
-        return render_template('reset_with_token.html', success=success, error=error)
-    return render_template('reset_with_token.html', error=error)
-
+    return render_template('reset_with_token.html', success=success, error=error)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        conn = sqlite3.connect(DB_NAME)
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, role, is_confirmed FROM users WHERE email=? AND password=?", (email, password))
-        user = cursor.fetchone()
-        conn.close()
+        email, password = request.form['email'], request.form['password']
+        user = User.query.filter_by(email=email, password=password).first()
         if user:
-            if not user[2]:
-                error = "Сначала подтвердите почту — проверьте e-mail!"
+            if not user.is_confirmed:
+                error = "Сначала подтвердите почту!"
             else:
-                session['user_id'] = user[0]
-                session['role'] = user[1]
+                session['user_id'], session['role'] = user.id, user.role
                 return redirect(url_for('dashboard'))
         else:
             error = "Неверный email или пароль!"
@@ -156,33 +107,17 @@ def login():
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-
     role = session.get('role')
-
     if role == 'admin':
         return render_template('admin_dashboard.html')
     elif role == 'news_admin':
         return render_template('news_admin_dashboard.html')
-    else:
-        return render_template('employee_dashboard.html')
-
-@app.route('/admin/users')
-def admin_users():
-    if 'user_id' not in session or session.get('role') != 'admin':
-        return redirect(url_for('login'))
-
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, email, role, is_confirmed FROM users")
-    users = cursor.fetchall()
-    conn.close()
-    return render_template('admin_users.html', users=users)
+    return render_template('employee_dashboard.html')
 
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
-
 
 if __name__ == '__main__':
     app.run(debug=True)
