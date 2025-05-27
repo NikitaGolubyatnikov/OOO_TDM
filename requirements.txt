@@ -5,3 +5,6 @@ click
 MarkupSafe
 blinker
 gunicorn
+flask_sqlalchemy
+psycopg2-binary
+werkzeug
