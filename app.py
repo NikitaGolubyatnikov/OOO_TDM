@@ -17,15 +17,15 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-'''# Подключение к PostgreSQL
+# Подключение к PostgreSQL
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "postgresql://ooo_tdm_user:rvZtUKexokiupiyU0iYAl45qAwt8uvwd@dpg-d0qu4g6mcj7s73edjv5g-a.oregon-postgres.render.com/ooo_tdm")
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False'''
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Для работы на Render (PostgreSQL):
+'''# Для работы на Render (PostgreSQL):
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "postgresql://ooo_tdm_user:...")
 
 # Для локальной разработки (SQLite):
-app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///tdm_local.db"
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///tdm_local.db"'''
 
 
 db = SQLAlchemy(app)
