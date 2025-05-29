@@ -2,56 +2,133 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Новости | Новостной админ</title>
+    <title>Управление новостями | Новостной админ</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='tdmred.png') }}">
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background: linear-gradient(120deg, #fff6e1 0%, #ffae45 100%); min-height: 100vh; }
-        .dashboard-box { max-width: 900px; margin: 60px auto; padding: 40px; border-radius: 22px; background: #fff; box-shadow: 0 6px 36px rgba(255,139,19,0.20);}
-        .btn-orange { background: #ff7f1f; border: none; color: #fff; }
-        .btn-orange:hover { background: #d63c13; }
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #fff6e1 0%, #ffae45 100%);
+            margin: 0; padding: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 960px;
+            margin: 60px auto;
+            padding: 0 15px;
+        }
+        .dashboard-box {
+            background: #fff;
+            border-radius: 32px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(255,127,31,0.1);
+            animation: fadeInUp 0.8s ease-out;
+        }
+        @keyframes fadeInUp {
+            from {opacity:0; transform: translateY(20px);} to {opacity:1; transform:translateY(0);} }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 30px;
+        }
+        .header-title {
+            color: #d63c13; font-size: 2rem; font-weight: 700;
+        }
+        .action-buttons a {
+            margin-left: 10px;
+        }
+        .btn-main {
+            background: linear-gradient(90deg, #ff7f1f 60%, #ffae45 100%);
+            color: #fff; font-weight: 600;
+            padding: 10px 24px; border: none; border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(255,127,31,0.15);
+            transition: all 0.2s;
+        }
+        .btn-main:hover {
+            background: linear-gradient(90deg,#d63c13 50%,#ffa949 100%);
+            transform: translateY(-2px);
+        }
+        .btn-secondary-custom {
+            background: #6c757d; color: #fff;
+            border: none; padding: 10px 24px;
+            border-radius: 24px; transition: background .2s;
+        }
+        .btn-secondary-custom:hover {
+            background: #5a6268;
+        }
+        table {
+            width: 100%; border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 15px; text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        thead {
+            background: linear-gradient(90deg, #ffae45 0%, #fff6e1 100%);
+            color: #444;
+        }
+        tbody tr:hover {
+            background: rgba(255,174,69,0.1);
+        }
+        .badge-files {
+            background: #17a2b8; color: #fff;
+            padding: 5px 10px; border-radius: 12px;
+            font-size: 0.9rem;
+        }
+        .table-actions .btn {
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body>
-<div class="dashboard-box shadow">
-    <h2 class="text-center mb-4" style="color:#d63c13;">Управление новостями</h2>
-    <div class="mb-4 text-center">
-        <a href="{{ url_for('news_admin_news') }}" class="btn btn-orange me-2">Все новости</a>
-        <a href="{{ url_for('add_news') }}" class="btn btn-orange">Добавить новость</a>
-        <a href="{{ url_for('news_admin_dashboard') }}" class="btn btn-secondary me-2">Вернуться назад</a>
+<div class="container">
+    <div class="dashboard-box">
+        <div class="header">
+            <div class="header-title">Управление новостями</div>
+            <div class="action-buttons">
+                <a href="{{ url_for('add_news') }}" class="btn btn-main">Добавить новость</a>
+                <a href="{{ url_for('news_admin_dashboard') }}" class="btn btn-secondary-custom">Назад</a>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Заголовок</th>
+                    <th>Дата</th>
+                    <th>Файлы</th>
+                    <th>Действия</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for n in news %}
+                <tr>
+                    <td>{{ n.title }}</td>
+                    <td>{{ n.created_at.strftime("%d.%m.%Y %H:%M") }}</td>
+                    <td>
+                        {% if n.files %}
+                            <span class="badge-files">{{ n.files|length }}</span>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="table-actions">
+                        <a href="{{ url_for('edit_news', news_id=n.id) }}" class="btn btn-main btn-sm">Редактировать</a>
+                        <form method="post" action="{{ url_for('delete_news', news_id=n.id) }}" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Удалить новость?');">Удалить</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted">Нет новостей</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-    <table class="table table-bordered">
-        <thead>
-        <tr>
-            <th>Заголовок</th>
-            <th>Дата</th>
-            <th>Файлы</th>
-            <th>Действия</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for n in news %}
-            <tr>
-                <td>{{ n.title }}</td>
-                <td>{{ n.created_at.strftime("%d.%m.%Y %H:%M") }}</td>
-                <td>
-                  {% if n.files %}
-                    <span class="badge bg-info ms-2">{{ n.files|length }}</span>
-                  {% else %}
-                    <span class="text-muted">—</span>
-                  {% endif %}
-                </td>
-                <td>
-                    <a href="{{ url_for('edit_news', news_id=n.id) }}" class="btn btn-orange btn-sm me-2">Редактировать</a>
-                    <form method="post" action="{{ url_for('delete_news', news_id=n.id) }}" style="display:inline;" onsubmit="return confirm('Удалить новость?');">
-                        <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
-                    </form>
-                </td>
-            </tr>
-        {% else %}
-            <tr><td colspan="4">Нет новостей</td></tr>
-        {% endfor %}
-        </tbody>
-    </table>
 </div>
 </body>
 </html>

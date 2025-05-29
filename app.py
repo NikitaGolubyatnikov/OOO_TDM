@@ -58,11 +58,6 @@ class NewsFile(db.Model):
 # Инициализация БД
 with app.app_context():
     db.create_all()
-    # Добавляем тестового администратора только если его нет
-    if not User.query.filter_by(email='admin@tdm.local').first():
-        admin = User(email='admin@tdm.local', password='admin', is_confirmed=True, role='admin')
-        db.session.add(admin)
-        db.session.commit()
 
 @app.route('/')
 def home():
@@ -233,28 +228,49 @@ def news_admin_news():
 @app.route('/news_admin/news/edit/<int:news_id>', methods=['GET', 'POST'])
 @news_admin_required
 def edit_news(news_id):
-    news = News.query.get_or_404(news_id)
+    news  = News.query.get_or_404(news_id)
     error = None
     if request.method == 'POST':
-        title = request.form['title']
+        title   = request.form['title']
         content = request.form['content']
         if not title or not content:
             error = "Заполни все поля!"
         else:
-            news.title = title
+            news.title   = title
             news.content = content
+            # --- Добавляем любые новые файлы ---
+            files = request.files.getlist('files')
+            for f in files:
+                if f and allowed_file(f.filename):
+                    filename    = secure_filename(f.filename)
+                    unique_name = f"{news.id}_{secrets.token_hex(6)}_{filename}"
+                    f.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_name))
+                    db.session.add(NewsFile(news_id=news.id, file_name=unique_name))
             db.session.commit()
             return redirect(url_for('news_admin_news'))
-    return render_template('news_add_edit.html', action="Редактировать", news=news, error=error)
+    return render_template(
+        'news_add_edit.html',
+        action="Редактировать",
+        news=news,
+        error=error
+    )
 
 # Удалить новость
 @app.route('/news_admin/news/delete/<int:news_id>', methods=['POST'])
 @news_admin_required
 def delete_news(news_id):
     news = News.query.get_or_404(news_id)
+    # 1) Сначала удаляем файлы на диске и записи в таблице NewsFile
+    for f in news.files:
+        path = os.path.join(app.config['UPLOAD_FOLDER'], f.file_name)
+        if os.path.exists(path):
+            os.remove(path)
+        db.session.delete(f)
+    # 2) Затем удаляем саму новость
     db.session.delete(news)
     db.session.commit()
     return redirect(url_for('news_admin_news'))
+
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
