@@ -10,7 +10,19 @@ app = Flask(__name__)
 app.secret_key = 'd--385vdi0xgs0^)!j0#n70hcqq+6ik4h5j%mzx5=b!7fda=o3'
 
 UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt'}
+ALLOWED_EXTENSIONS = {
+    # Изображения
+    'png', 'jpg', 'jpeg', 'gif', 'bmp', 'svg', 'webp', 'heic', 'heif',
+    # Документы
+    'pdf', 'doc', 'docx', 'rtf', 'odt', 'txt', 'md',
+    # Таблицы и данные
+    'xls', 'xlsx', 'ods', 'csv',
+    # Презентации
+    'ppt', 'pptx', 'odp',
+    # Архивы
+    'zip', 'rar', '7z', 'tar', 'gz'
+}
+
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
