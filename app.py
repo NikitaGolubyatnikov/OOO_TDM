@@ -58,6 +58,11 @@ class NewsFile(db.Model):
 # Инициализация БД
 with app.app_context():
     db.create_all()
+    # Добавляем тестового администратора только если его нет
+    if not User.query.filter_by(email='admin@tdm.local').first():
+        admin = User(email='admin@tdm.local', password='admin', is_confirmed=True, role='admin')
+        db.session.add(admin)
+        db.session.commit()
 
 @app.route('/')
 def home():
