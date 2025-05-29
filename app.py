@@ -302,6 +302,11 @@ def delete_news(news_id):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@app.route('/news_admin/dashboard')
+@news_admin_required
+def news_admin_dashboard():
+    return render_template('news_admin_dashboard.html')
+
 # Добавить новость
 
 @app.route('/news_admin/news/add', methods=['GET', 'POST'])
