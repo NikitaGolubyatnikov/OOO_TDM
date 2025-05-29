@@ -3,94 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <title>Пользователи | Админ-панель ООО «ТДМ»</title>
-    <link rel="icon" type="image/png" href="/static/tdmred.png">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='tdmred.png') }}">
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        /* Global resets */
+        * { box-sizing: border-box; margin:0; padding:0; }
+        html, body { height: 100%; }
         body {
-            background: linear-gradient(120deg, #fff6e1 0%, #ffae45 100%);
-            min-height: 100vh;
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #fff6e1 0%, #ffae45 100%);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
         }
+        /* Floating circles */
+        .circle { position: absolute; border-radius: 50%; background: rgba(255,127,31,0.1); animation: drift 6s ease-in-out infinite; }
+        .circle:nth-child(1) { width:220px; height:220px; top:-50px; left:-50px; }
+        .circle:nth-child(2) { width:180px; height:180px; bottom:-60px; right:-60px; animation-delay:3s; }
+        @keyframes drift { 0%,100% { transform: translate(0,0);} 50% { transform: translate(20px,-20px);} }
+        @keyframes fadeInUp { from { opacity:0; transform: translateY(30px);} to { opacity:1; transform: translateY(0);} }
+        /* Container */
+        .container { max-width: 960px; width:100%; padding: 20px; }
         .dashboard-box {
-            max-width: 900px;
-            margin: 60px auto;
-            padding: 40px 35px 30px 35px;
-            border-radius: 22px;
+            position: relative;
             background: #fff;
-            box-shadow: 0 6px 36px rgba(255, 139, 19, 0.20);
+            border-radius: 28px;
+            padding: 50px;
+            box-shadow: 0 12px 48px rgba(255,127,31,0.2);
+            animation: fadeInUp 0.8s ease-out;
+            z-index:1;
         }
         .dashboard-title {
-            color:#d63c13;
-            font-weight: bold;
+            font-size:2rem; font-weight:700; color:#d63c13; margin-bottom:20px; text-align:center;
         }
-        .btn-orange {
-            background: #ff7f1f;
-            border: none;
-            color: #fff;
+        .action-buttons { text-align:center; margin-bottom:30px; }
+        .action-buttons .btn-main {
+            background: linear-gradient(90deg,#ff7f1f 60%,#ffae45 100%);
+            color:#fff; font-weight:600; padding:12px 24px; border:none; border-radius:24px;
+            box-shadow:0 6px 24px rgba(255,127,31,0.15); transition: transform 0.2s;
         }
-        .btn-orange:hover {
-            background: #d63c13;
+        .action-buttons .btn-main:hover { transform: translateY(-2px); }
+        .action-buttons .btn-secondary { margin-left:10px; }
+        /* Table */
+        .table-responsive { overflow-x:auto; }
+        table { width:100%; border-collapse:collapse; }
+        thead th {
+            background: linear-gradient(90deg,#ffae45 0%,#fff6e1 100%);
+            color:#444; font-weight:600; padding:12px;
         }
-        .table-orange th {
-            color: #d63c13;
+        tbody tr { transition: background 0.2s; }
+        tbody tr:hover { background: rgba(255,174,69,0.1); }
+        td, th { text-align:left; }
+        td { padding:12px; border-bottom:1px solid #eee; }
+        .form-select {
+            display:inline-block; width:auto; border-radius:8px; border:1px solid #ffd9b3; padding:4px 8px;
         }
+        .btn-save, .btn-delete {
+            padding:4px 10px; border-radius:4px; font-size:0.9rem;
+        }
+        .btn-save { background:#ff7f1f; color:#fff; border:none; }
+        .btn-save:hover { background:#d63c13; }
+        .btn-delete { background:#dc3545; color:#fff; border:none; }
+        .btn-delete:hover { background:#c82333; }
+        .badge { font-size:0.9rem; }
     </style>
 </head>
 <body>
-    <div class="dashboard-box shadow">
-        <h2 class="text-center mb-4 dashboard-title">Пользователи системы</h2>
-        <div class="mb-4 text-center">
-            <a href="{{ url_for('dashboard') }}" class="btn btn-orange me-2">Главная</a>
-            <a href="{{ url_for('admin_users') }}" class="btn btn-orange me-2">Пользователи</a>
-            <!-- Кнопки для будущих разделов -->
-            <a href="#" class="btn btn-orange disabled">Новости</a>
-            <a href="#" class="btn btn-orange disabled">Задачи</a>
+    <div class="circle"></div><div class="circle"></div>
+    <div class="container">
+        <div class="dashboard-box">
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            <div class="alert alert-success text-center mb-3">{{ messages[0] }}</div>
+            {% endif %}
+            {% endwith %}
+            <h2 class="dashboard-title">Пользователи системы</h2>
+            <div class="action-buttons">
+                <a href="{{ url_for('dashboard') }}" class="btn-main">Главная</a>
+            </div>
+            {% if error %}
+                <div class="alert alert-danger text-center">{{ error }}</div>
+            {% endif %}
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Email</th>
+                            <th>Роль</th>
+                            <th>Подтверждён</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for user in users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                <form method="post" style="display:inline;">
+                                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                                    <select name="role" class="form-select" {% if user.id == session['user_id'] and user.role=='admin' %}disabled{% endif %}>
+                                        <option value="admin" {% if user.role=='admin' %}selected{% endif %}>Админ</option>
+                                        <option value="news_admin" {% if user.role=='news_admin' %}selected{% endif %}>Новостной админ</option>
+                                        <option value="employee" {% if user.role=='employee' %}selected{% endif %}>Сотрудник</option>
+                                    </select>
+                                    <button type="submit" name="set_role" class="btn-save" {% if user.id==session['user_id'] and user.role=='admin' %}disabled{% endif %}>Сохранить</button>
+                                </form>
+                            </td>
+                            <td>
+                                {% if user.is_confirmed %}<span class="badge bg-success">Да</span>
+                                {% else %}<span class="badge bg-warning text-dark">Нет</span>{% endif %}
+                            </td>
+                            <td>
+                                <form method="post" style="display:inline;">
+                                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                                    <button type="submit" name="delete_user" class="btn-delete" {% if user.id==session['user_id'] or (user.role=='admin' and users|selectattr('role','equalto','admin')|list|length==1) %}disabled{% endif %}>Удалить</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-        {% if error %}
-            <div class="alert alert-danger text-center" role="alert">{{ error }}</div>
-        {% endif %}
-        <table class="table table-bordered table-orange">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Email</th>
-                    <th>Роль</th>
-                    <th>Подтверждён</th>
-                    <th>Действия</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for user in users %}
-                <tr>
-                    <td>{{ user.id }}</td>
-                    <td>{{ user.email }}</td>
-                    <td>
-                        <form method="post" style="display:inline;">
-                            <input type="hidden" name="user_id" value="{{ user.id }}">
-                            <select name="role" class="form-select" style="display:inline;width:auto;" {% if user.id == session['user_id'] and user.role == 'admin' %}disabled{% endif %}>
-                                <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Админ</option>
-                                <option value="news_admin" {% if user.role == 'news_admin' %}selected{% endif %}>Новостной админ</option>
-                                <option value="employee" {% if user.role == 'employee' %}selected{% endif %}>Сотрудник</option>
-                            </select>
-                            <button type="submit" name="set_role" class="btn btn-orange btn-sm ms-2" {% if user.id == session['user_id'] and user.role == 'admin' %}disabled{% endif %}>Сохранить</button>
-                        </form>
-                    </td>
-                    <td>
-                        {% if user.is_confirmed %}
-                            <span class="badge bg-success">Да</span>
-                        {% else %}
-                            <span class="badge bg-warning text-dark">Нет</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <form method="post" style="display:inline;">
-                            <input type="hidden" name="user_id" value="{{ user.id }}">
-                            <button type="submit" name="delete_user" class="btn btn-danger btn-sm" {% if user.id == session['user_id'] or (user.role == 'admin' and users|selectattr('role', 'equalto', 'admin')|list|length == 1) %}disabled{% endif %}>Удалить</button>
-                        </form>
-                    </td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
     </div>
 </body>
 </html>

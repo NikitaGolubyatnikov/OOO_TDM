@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Лента новостей | ООО «ТДМ»</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='tdmred.png') }}">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap + Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    /* Reset & basic */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: linear-gradient(135deg, #fff6e1 0%, #ffae45 100%);
+      position: relative;
+      padding: 60px 20px;
+      color: #333;
+    }
+    /* Decorative circles */
+    .circle {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,127,31,0.1);
+      animation: drift 6s ease-in-out infinite;
+      z-index: 0;
+    }
+    .circle:nth-child(1) { width: 250px; height: 250px; top: -50px; left: -50px; }
+    .circle:nth-child(2) { width: 180px; height: 180px; bottom: -60px; right: -60px; animation-delay: 3s; }
+    @keyframes drift { 0%,100% { transform: translate(0,0); } 50% { transform: translate(20px,-20px); } }
+    /* Container */
+    .container { position: relative; z-index: 1; max-width: 800px; margin: auto; }
+    /* Title */
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #d63c13;
+      text-align: center;
+      margin-bottom: 40px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    /* News card */
+    .news-item {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .news-title { font-size: 1.5rem; color: #d63c13; font-weight: 600; margin-bottom: 8px; }
+    .news-date { font-size: 0.85rem; color: #666; margin-bottom: 12px; }
+    .news-content { font-size: 1rem; line-height: 1.6; margin-bottom: 16px; }
+    /* Attachments */
+    .attachments { margin-top: 12px; }
+    .attachments strong {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #333;
+      margin-right: 8px;
+    }
+    .attachments a {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      margin: 0 8px 8px 0;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #d63c13;
+      background: #fff4f0;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+    }
+    .attachments a:hover {
+      background: #ffe8df;
+      color: #a12e09;
+    }
+    .attachments a .bi { margin-right: 6px; font-size: 1.2rem; }
+    /* Pagination */
+    .pagination { display: flex; justify-content: space-between; margin-top: 24px; }
+    .btn-orange {
+      background: #ff7f1f;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 24px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .btn-orange:hover:not(:disabled) { background: #e36b17; transform: translateY(-2px); }
+    .btn-orange:disabled { background: #ccc; cursor: default; }
+  </style>
+</head>
+<body>
+  <div class="circle"></div>
+  <div class="circle"></div>
+  <div class="container">
+    <h1>Лента новостей</h1>
+
+    {% for item in news %}
+    <div class="news-item">
+      <div class="news-title">{{ item.title }}</div>
+      <div class="news-date">{{ item.created_at.strftime("%d.%m.%Y %H:%M") }}</div>
+      <div class="news-content">{{ item.content|safe }}</div>
+
+      {% if item.files %}
+      <div class="attachments">
+        <strong>Вложения:</strong>
+        {% for f in item.files %}
+          {% set ext = f.file_name.split('.')[-1].lower() %}
+          <a href="{{ url_for('uploaded_file', filename=f.file_name) }}" target="_blank">
+            {% if ext in ['png','jpg','jpeg','gif'] %}<i class="bi bi-image"></i>
+            {% elif ext == 'pdf' %}<i class="bi bi-file-earmark-pdf"></i>
+            {% elif ext in ['doc','docx'] %}<i class="bi bi-file-earmark-word"></i>
+            {% else %}<i class="bi bi-paperclip"></i>{% endif %}
+            {{ f.file_name }}
+          </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    <div class="pagination">
+      {% if prev_page %}
+        <a class="btn-orange" href="{{ url_for('employee_feed', page=prev_page) }}">&larr; Назад</a>
+      {% else %}
+        <button class="btn-orange" disabled>&larr; Назад</button>
+      {% endif %}
+
+      {% if next_page %}
+        <a class="btn-orange" href="{{ url_for('employee_feed', page=next_page) }}">Вперёд &rarr;</a>
+      {% else %}
+        <button class="btn-orange" disabled>Вперёд &rarr;</button>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>

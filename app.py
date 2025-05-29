@@ -5,6 +5,7 @@ import secrets
 from send_email import send_confirmation_email, send_reset_email
 from datetime import datetime
 from werkzeug.utils import secure_filename
+from functools import wraps
 
 app = Flask(__name__)
 app.secret_key = 'd--385vdi0xgs0^)!j0#n70hcqq+6ik4h5j%mzx5=b!7fda=o3'
@@ -167,12 +168,18 @@ def logout():
 # Панель управления пользователями (для админа)
 # --------------------------
 
-from functools import wraps
-
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session or session.get('role') != 'admin':
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
@@ -182,6 +189,7 @@ def admin_required(f):
 def admin_users():
     users = User.query.order_by(User.id).all()
     error = None
+
     if request.method == 'POST':
         # Меняем роль пользователя
         if 'set_role' in request.form:
@@ -189,7 +197,7 @@ def admin_users():
             new_role = request.form['role']
             user = User.query.get(user_id)
             if user:
-                # Не позволяем лишать себя последнего админа
+                # Не позволяем лишить себя роли последнего админа
                 if user.role == 'admin' and new_role != 'admin':
                     admins = User.query.filter_by(role='admin').count()
                     if admins <= 1 and user.id == session['user_id']:
@@ -197,9 +205,12 @@ def admin_users():
                     else:
                         user.role = new_role
                         db.session.commit()
+                        flash("Роль пользователя обновлена!")
                 else:
                     user.role = new_role
                     db.session.commit()
+                    flash("Роль пользователя обновлена!")
+
         # Удаляем пользователя
         if 'delete_user' in request.form:
             user_id = int(request.form['user_id'])
@@ -214,10 +225,14 @@ def admin_users():
                     else:
                         db.session.delete(user)
                         db.session.commit()
+                        flash("Пользователь удалён!")
                 else:
                     db.session.delete(user)
                     db.session.commit()
-    users = User.query.order_by(User.id).all()  # Обновляем список
+                    flash("Пользователь удалён!")
+
+    # Обновляем список после всех операций
+    users = User.query.order_by(User.id).all()
     return render_template('admin_users.html', users=users, error=error)
 
 # Декоратор для новостного админа
@@ -333,10 +348,31 @@ def delete_news_file(file_id):
     # Вернёмся на редактирование новости
     return redirect(url_for('edit_news', news_id=file.news_id))
 
-@app.route('/news_admin/dashboard')
-@news_admin_required
-def news_admin_dashboard():
-    return render_template('news_admin_dashboard.html')
+@app.route('/employee/news')
+@login_required
+def employee_feed():
+    page     = request.args.get('page', 1, type=int)
+    per_page = 5
+
+    # Передаём все параметры по имени
+    pagination = (
+        News.query
+            .order_by(News.created_at.desc())
+            .paginate(page=page, per_page=per_page, error_out=False)
+    )
+
+    # Собираем новости и навигацию
+    news       = pagination.items
+    next_page  = pagination.has_next and pagination.next_num
+    prev_page  = pagination.has_prev and pagination.prev_num
+
+    return render_template(
+        'employee_feed.html',
+        news=news,
+        next_page=next_page,
+        prev_page=prev_page
+    )
+
 
 
 
