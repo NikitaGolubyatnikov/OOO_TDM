@@ -509,15 +509,26 @@ def delete_news_file(file_id):
 def employee_feed():
     page     = request.args.get('page', 1, type=int)
     per_page = 5
+    q        = request.args.get('q', '').strip()  # строка поиска
 
     user = User.query.get(session['user_id'])
 
+    # Базовый фильтр: либо department_id == None, либо == user.department_id
+    base_query = News.query.filter(
+        (News.department_id == None) |
+        (News.department_id == user.department_id)
+    )
+
+    # Если поиск задан, добавляем условие по заголовку и тексту (ILIKE для нечувствительности к регистру)
+    if q:
+        search = f"%{q}%"
+        base_query = base_query.filter(
+            (News.title.ilike(search)) |
+            (News.content.ilike(search))
+        )
+
     pagination = (
-        News.query
-            .filter(
-                (News.department_id == None) |
-                (News.department_id == user.department_id)
-            )
+        base_query
             .order_by(News.created_at.desc())
             .paginate(page=page, per_page=per_page, error_out=False)
     )
@@ -532,6 +543,7 @@ def employee_feed():
         next_page=next_page,
         prev_page=prev_page
     )
+
 
 
 if __name__ == '__main__':
