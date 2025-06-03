@@ -6,6 +6,7 @@ from send_email import send_confirmation_email, send_reset_email
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from functools import wraps
+from send_email import send_news_email
 
 app = Flask(__name__)
 app.secret_key = 'd--385vdi0xgs0^)!j0#n70hcqq+6ik4h5j%mzx5=b!7fda=o3'
@@ -452,11 +453,27 @@ def add_news():
             for file in files:
                 if file and allowed_file(file.filename):
                     filename = secure_filename(file.filename)
-                    # Чтобы имена не дублировались
                     unique_filename = f"{news.id}_{secrets.token_hex(6)}_{filename}"
                     file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
                     db.session.add(NewsFile(news_id=news.id, file_name=unique_filename))
             db.session.commit()
+
+            # ----------- Блок рассылки уведомлений -------------
+            # Определяем аудиторию (все или только отдел)
+            if dept_id:
+                users = User.query.filter_by(department_id=int(dept_id), is_confirmed=True).all()
+            else:
+                users = User.query.filter(User.is_confirmed == True).all()
+
+            # Отправляем каждому email с кратким текстом новости и ссылкой
+            for user in users:
+                send_news_email(
+                    user.email,
+                    news.title,
+                    news.content[:200],  # короткий текст
+                    url_for('employee_feed', _external=True)
+                )
+            # ----------- конец блока рассылки -------------
 
             return redirect(url_for('news_admin_news'))
 
@@ -468,7 +485,6 @@ def add_news():
         news=None,
         departments=departments
     )
-
 
 from flask import send_from_directory
 
