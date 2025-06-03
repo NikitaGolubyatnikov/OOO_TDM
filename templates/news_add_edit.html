@@ -27,6 +27,18 @@
             <label class="form-label">Текст новости</label>
             <textarea class="form-control" name="content" rows="6" required>{{ news.content if news else '' }}</textarea>
         </div>
+                <div class="mb-3">
+            <label class="form-label">Для какого отдела?</label>
+            <select class="form-select" name="department_id">
+                <option value="" {% if not news or not news.department_id %}selected{% endif %}>Для всех</option>
+                {% for dept in departments %}
+                    <option value="{{ dept.id }}" {% if news and news.department_id == dept.id %}selected{% endif %}>
+                        {{ dept.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
         <div class="mb-3">
             <label class="form-label">Прикрепить файлы</label>
             <input type="file" class="form-control" name="files" multiple>

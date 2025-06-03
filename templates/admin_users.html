@@ -6,124 +6,234 @@
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='tdmred.png') }}">
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Global resets */
-        * { box-sizing: border-box; margin:0; padding:0; }
+        /* ========== Фон и общие стили ========== */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { height: 100%; }
         body {
             font-family: 'Montserrat', sans-serif;
             background: linear-gradient(135deg, #fff6e1 0%, #ffae45 100%);
-            display: flex; align-items: center; justify-content: center;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        /* Floating circles */
-        .circle { position: absolute; border-radius: 50%; background: rgba(255,127,31,0.1); animation: drift 6s ease-in-out infinite; }
-        .circle:nth-child(1) { width:220px; height:220px; top:-50px; left:-50px; }
-        .circle:nth-child(2) { width:180px; height:180px; bottom:-60px; right:-60px; animation-delay:3s; }
-        @keyframes drift { 0%,100% { transform: translate(0,0);} 50% { transform: translate(20px,-20px);} }
-        @keyframes fadeInUp { from { opacity:0; transform: translateY(30px);} to { opacity:1; transform: translateY(0);} }
-        /* Container */
-        .container { max-width: 960px; width:100%; padding: 20px; }
-        .dashboard-box {
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,127,31,0.1);
+            animation: drift 6s ease-in-out infinite;
+        }
+        .circle:nth-child(1) {
+            width: 260px; height: 260px;
+            top: -60px; left: -60px;
+        }
+        .circle:nth-child(2) {
+            width: 200px; height: 200px;
+            bottom: -70px; right: -70px;
+            animation-delay: 3s;
+        }
+        @keyframes drift {
+            0%, 100% { transform: translate(0, 0); }
+            50%      { transform: translate(20px, -20px); }
+        }
+
+        /* ========== Контейнер и карточка ========== */
+        .container {
+            max-width: 1200px;  /* Развернули окно шире */
+            width: 100%;
+            padding: 20px;
             position: relative;
-            background: #fff;
-            border-radius: 28px;
-            padding: 50px;
+            z-index: 1;
+        }
+        .dashboard-box {
+            background: #ffffff;
+            border-radius: 30px;
+            padding: 30px;  /* Немного уменьшили внутренние отступы */
             box-shadow: 0 12px 48px rgba(255,127,31,0.2);
             animation: fadeInUp 0.8s ease-out;
-            z-index:1;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
         .dashboard-title {
-            font-size:2rem; font-weight:700; color:#d63c13; margin-bottom:20px; text-align:center;
+            font-size: 2.4rem;  /* Увеличили размер заголовка */
+            font-weight: 700;
+            color: #d63c13;
+            margin-bottom: 30px;
+            text-align: center;
         }
-        .action-buttons { text-align:center; margin-bottom:30px; }
-        .action-buttons .btn-main {
-            background: linear-gradient(90deg,#ff7f1f 60%,#ffae45 100%);
-            color:#fff; font-weight:600; padding:12px 24px; border:none; border-radius:24px;
-            box-shadow:0 6px 24px rgba(255,127,31,0.15); transition: transform 0.2s;
+
+        /* ========== Кнопки и элементы таблицы ========== */
+        .table thead th {
+            background: linear-gradient(90deg, #ffae45 0%, #fff6e1 100%);
+            color: #444444;
+            font-weight: 600;
+            padding: 16px;
         }
-        .action-buttons .btn-main:hover { transform: translateY(-2px); }
-        .action-buttons .btn-secondary { margin-left:10px; }
-        /* Table */
-        .table-responsive { overflow-x:auto; }
-        table { width:100%; border-collapse:collapse; }
-        thead th {
-            background: linear-gradient(90deg,#ffae45 0%,#fff6e1 100%);
-            color:#444; font-weight:600; padding:12px;
+        .table tbody tr:hover {
+            background-color: rgba(255, 174, 69, 0.1);
         }
-        tbody tr { transition: background 0.2s; }
-        tbody tr:hover { background: rgba(255,174,69,0.1); }
-        td, th { text-align:left; }
-        td { padding:12px; border-bottom:1px solid #eee; }
         .form-select {
-            display:inline-block; width:auto; border-radius:8px; border:1px solid #ffd9b3; padding:4px 8px;
+            display: inline-block;
+            width: auto;
+            border-radius: 8px;
+            border: 1px solid #ffd9b3;
+            padding: 6px 10px;
+            font-size: 0.95rem;
         }
-        .btn-save, .btn-delete {
-            padding:4px 10px; border-radius:4px; font-size:0.9rem;
+        .btn-save {
+            background-color: #ff7f1f;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-weight: 600;
+            transition: background-color 0.2s;
         }
-        .btn-save { background:#ff7f1f; color:#fff; border:none; }
-        .btn-save:hover { background:#d63c13; }
-        .btn-delete { background:#dc3545; color:#fff; border:none; }
-        .btn-delete:hover { background:#c82333; }
-        .badge { font-size:0.9rem; }
+        .btn-save:hover {
+            background-color: #d63c13;
+        }
+        .btn-delete {
+            background-color: #dc3545;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .btn-delete:hover {
+            background-color: #c82333;
+        }
+        .action-buttons .btn-main {
+            background: linear-gradient(90deg, #ff7f1f 60%, #ffae45 100%);
+            color: #ffffff;
+            font-weight: 600;
+            padding: 10px 28px;
+            border: none;
+            border-radius: 24px;
+            box-shadow: 0 6px 24px rgba(255,127,31,0.15);
+            transition: transform 0.2s;
+        }
+        .action-buttons .btn-main:hover {
+            transform: translateY(-2px);
+        }
+        .badge {
+            font-size: 0.9rem;
+        }
+
+        /* Уменьшенный отступ между кнопками "Сохранить" и "Удалить" */
+        .actions-wrapper {
+            display: inline-flex;
+            gap: 4px; /* Сокращённый отступ */
+            align-items: center;
+        }
+
+        /* ========== Медиазапросы ========== */
+        @media (max-width: 992px) {
+            .dashboard-title { font-size: 2rem; }
+            .form-select, .btn-save, .btn-delete { font-size: 0.85rem; padding: 4px 10px; }
+            .table thead th, .table tbody td { padding: 12px 8px; }
+        }
+        @media (max-width: 576px) {
+            .dashboard-title { font-size: 1.6rem; }
+            .form-select, .btn-save, .btn-delete { font-size: 0.8rem; padding: 4px 8px; }
+            .table thead th, .table tbody td { padding: 10px 6px; }
+        }
     </style>
 </head>
 <body>
-    <div class="circle"></div><div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
+
     <div class="container">
         <div class="dashboard-box">
             {% with messages = get_flashed_messages() %}
-            {% if messages %}
-            <div class="alert alert-success text-center mb-3">{{ messages[0] }}</div>
-            {% endif %}
+                {% if messages %}
+                    <div class="alert alert-success text-center mb-4">{{ messages[0] }}</div>
+                {% endif %}
             {% endwith %}
+
             <h2 class="dashboard-title">Пользователи системы</h2>
-            <div class="action-buttons">
+
+            <div class="action-buttons text-center mb-4">
                 <a href="{{ url_for('dashboard') }}" class="btn-main">Главная</a>
             </div>
+
             {% if error %}
-                <div class="alert alert-danger text-center">{{ error }}</div>
+                <div class="alert alert-danger text-center mb-4">{{ error }}</div>
             {% endif %}
+
             <div class="table-responsive">
-                <table>
+                <table class="table table-hover align-middle">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Email</th>
-                            <th>Роль</th>
-                            <th>Подтверждён</th>
-                            <th>Действия</th>
+                            <th scope="col">ID</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Роль</th>
+                            <th scope="col">Отдел</th>
+                            <th scope="col">Подтверждён</th>
+                            <th scope="col">Действия</th>
                         </tr>
                     </thead>
                     <tbody>
-                    {% for user in users %}
+                        {% for user in users %}
                         <tr>
-                            <td>{{ user.id }}</td>
+                            <td class="fw-semibold">{{ user.id }}</td>
                             <td>{{ user.email }}</td>
                             <td>
-                                <form method="post" style="display:inline;">
+                                <form method="post" style="display: inline-flex; align-items: center; gap: 8px;">
                                     <input type="hidden" name="user_id" value="{{ user.id }}">
-                                    <select name="role" class="form-select" {% if user.id == session['user_id'] and user.role=='admin' %}disabled{% endif %}>
-                                        <option value="admin" {% if user.role=='admin' %}selected{% endif %}>Админ</option>
-                                        <option value="news_admin" {% if user.role=='news_admin' %}selected{% endif %}>Новостной админ</option>
-                                        <option value="employee" {% if user.role=='employee' %}selected{% endif %}>Сотрудник</option>
+                                    <select name="role" class="form-select"
+                                        {% if user.id == session['user_id'] and user.role == 'admin' %}disabled{% endif %}>
+                                        <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Администратор</option>
+                                        <option value="news_admin" {% if user.role == 'news_admin' %}selected{% endif %}>Новостной админ</option>
+                                        <option value="employee" {% if user.role == 'employee' %}selected{% endif %}>Сотрудник</option>
                                     </select>
-                                    <button type="submit" name="set_role" class="btn-save" {% if user.id==session['user_id'] and user.role=='admin' %}disabled{% endif %}>Сохранить</button>
-                                </form>
                             </td>
                             <td>
-                                {% if user.is_confirmed %}<span class="badge bg-success">Да</span>
-                                {% else %}<span class="badge bg-warning text-dark">Нет</span>{% endif %}
+                                    <select name="department_id" class="form-select">
+                                        <option value="" {% if not user.department_id %}selected{% endif %}> Без отдела </option>
+                                        {% for dept in departments %}
+                                            <option value="{{ dept.id }}" {% if user.department_id == dept.id %}selected{% endif %}>
+                                                {{ dept.name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
                             </td>
                             <td>
-                                <form method="post" style="display:inline;">
-                                    <input type="hidden" name="user_id" value="{{ user.id }}">
-                                    <button type="submit" name="delete_user" class="btn-delete" {% if user.id==session['user_id'] or (user.role=='admin' and users|selectattr('role','equalto','admin')|list|length==1) %}disabled{% endif %}>Удалить</button>
+                                {% if user.is_confirmed %}
+                                    <span class="badge bg-success">Да</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Нет</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                    <div class="actions-wrapper">
+                                        <button type="submit" name="set_role" class="btn-save"
+                                            {% if user.id == session['user_id'] and user.role == 'admin' %}disabled{% endif %}>
+                                            Сохранить
+                                        </button>
+                                        <form method="post" style="display: inline;">
+                                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                                            <button type="submit" name="delete_user" class="btn-delete"
+                                                {% if user.id == session['user_id'] or
+                                                      (user.role == 'admin' and
+                                                       (users | selectattr('role','equalto','admin') | list | length <= 1)) %}
+                                                    disabled
+                                                {% endif %}>
+                                                Удалить
+                                            </button>
+                                        </form>
+                                    </div>
                                 </form>
                             </td>
                         </tr>
-                    {% endfor %}
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
