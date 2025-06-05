@@ -56,6 +56,20 @@ class User(db.Model):
 
     department = db.relationship('Department', backref=db.backref('users', lazy=True))
 
+# Добавить новую модель для хранения просмотров
+class NewsView(db.Model):
+    id        = db.Column(db.Integer, primary_key=True)
+    news_id   = db.Column(db.Integer, db.ForeignKey('news.id'), nullable=False)
+    user_id   = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    viewed_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # добавляем связь с User
+    user = db.relationship(
+        'User',
+        backref=db.backref('news_views', lazy=True),
+        lazy=True
+    )
+
 class News(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
@@ -63,6 +77,7 @@ class News(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     department_id = db.Column(db.Integer, db.ForeignKey('department.id'), nullable=True)  # может быть None (для всех)
+    views = db.relationship('NewsView', backref='news', lazy=True)
 
 class NewsFile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -90,7 +105,16 @@ with app.app_context():
         sales = Department(name='Продажи')
         marketing = Department(name='Маркетинг')
         accounting = Department(name='Бухгалтерия')
-        db.session.add_all([it, hr, sales, marketing, accounting])
+        logistics = Department(name='Логистика и снабжение')
+        warehouse = Department(name='Склад')
+        engineering = Department(name='Проектирование')
+        production = Department(name='Производство')
+        admin = Department(name='Администрация')
+
+        db.session.add_all([
+            it, hr, sales, marketing, accounting,
+            logistics, warehouse, engineering, production, admin
+        ])
         db.session.commit()
 
     # создаём тестовых пользователей (если их нет)
@@ -504,6 +528,7 @@ def delete_news_file(file_id):
     # Вернёмся на редактирование новости
     return redirect(url_for('edit_news', news_id=file.news_id))
 
+# Маршрут для ленты новостей (с фиксацией просмотренных новостей)
 @app.route('/employee/news')
 @login_required
 def employee_feed():
@@ -519,7 +544,7 @@ def employee_feed():
         (News.department_id == user.department_id)
     )
 
-    # Если поиск задан, добавляем условие по заголовку и тексту (ILIKE для нечувствительности к регистру)
+    # Если поиск задан, добавляем условие по заголовку и тексту
     if q:
         search = f"%{q}%"
         base_query = base_query.filter(
@@ -533,16 +558,43 @@ def employee_feed():
             .paginate(page=page, per_page=per_page, error_out=False)
     )
 
-    news      = pagination.items
+    news_list = pagination.items
     next_page = pagination.has_next and pagination.next_num
-    prev_page = pagination.has_prev and pagination.prev_num
+    prev_page = pagination.has_prev and pagination.next_num
+
+    # --- Блок фиксации просмотров ---
+    for item in news_list:
+        # Проверяем, не было ли уже в базе записи о том, что текущий пользователь
+        # смотрел эту новость
+        existing_view = NewsView.query.filter_by(
+            news_id=item.id,
+            user_id=user.id
+        ).first()
+
+        if not existing_view:
+            new_view = NewsView(
+                news_id=item.id,
+                user_id=user.id
+            )
+            db.session.add(new_view)
+    db.session.commit()
+    # --- Конец блока фиксации просмотров ---
 
     return render_template(
         'employee_feed.html',
-        news=news,
+        news=news_list,
         next_page=next_page,
         prev_page=prev_page
     )
+
+
+# Новый маршрут для просмотра статистики просмотров (доступен только для news_admin)
+@app.route('/news_admin/news/views/<int:news_id>')
+@news_admin_required
+def news_views(news_id):
+    news_item = News.query.get_or_404(news_id)
+    views = NewsView.query.filter_by(news_id=news_id).order_by(NewsView.viewed_at.desc()).all()
+    return render_template('news_views.html', news=news_item, views=views)
 
 
 

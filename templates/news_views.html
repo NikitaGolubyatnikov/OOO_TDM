@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Просмотры новости | {{ news.title }}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='tdmred.png') }}">
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #fff6e1 0%, #ffae45 100%);
+            margin: 0; padding: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 960px;
+            margin: 60px auto;
+            padding: 0 15px;
+        }
+        .dashboard-box {
+            background: #fff;
+            border-radius: 32px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(255,127,31,0.1);
+            animation: fadeInUp 0.8s ease-out;
+        }
+        @keyframes fadeInUp {
+            from {opacity:0; transform: translateY(20px);} to {opacity:1; transform:translateY(0);}
+        }
+        h2 {
+            color: #d63c13;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        thead {
+            background: linear-gradient(90deg, #ffae45 0%, #fff6e1 100%);
+            color: #444;
+        }
+        tbody tr:hover {
+            background: rgba(255,174,69,0.1);
+        }
+        .btn-main {
+            background: linear-gradient(90deg, #ff7f1f 60%, #ffae45 100%);
+            color: #fff;
+            font-weight: 600;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 24px;
+            box-shadow: 0 4px 20px rgba(255,127,31,0.15);
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .btn-main:hover {
+            background: linear-gradient(90deg,#d63c13 50%,#ffa949 100%);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard-box">
+            <h2>Просмотры новости: {{ news.title }}</h2>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Сотрудник</th>
+                        <th>Отдел</th>
+                        <th>Время просмотра</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for view in views %}
+                    <tr>
+                        <td>{{ view.user.email }}</td>
+                        <td>
+                            {% if view.user.department %}
+                                {{ view.user.department.name }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ view.viewed_at.strftime("%d.%m.%Y %H:%M") }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted">Нет данных о просмотрах</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <a href="{{ url_for('news_admin_news') }}" class="btn-main">Назад</a>
+        </div>
+    </div>
+</body>
+</html>
