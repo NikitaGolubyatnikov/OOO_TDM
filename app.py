@@ -239,7 +239,20 @@ def register():
             user = User(email=email, password=password, confirm_token=token)
             db.session.add(user)
             db.session.commit()
-            send_confirmation_email(email, token)
+
+            # Отправка письма в фоновом потоке, чтобы не вешать сервер
+            def send_conf_in_background(app_obj, recipient, confirm_token):
+                with app_obj.app_context():
+                    try:
+                        send_confirmation_email(recipient, confirm_token)
+                    except Exception as e:
+                        print(f'Ошибка отправки email подтверждения: {e}')
+
+            threading.Thread(
+                target=send_conf_in_background,
+                args=(app, email, token)
+            ).start()
+
             success = 'Письмо для подтверждения отправлено на вашу почту!'
     return render_template('register.html', error=error, success=success)
 
@@ -271,10 +284,21 @@ def reset_password():
         if user:
             user.confirm_token = token
             db.session.commit()
-            send_reset_email(email, token)
+
+            def send_reset_in_background(app_obj, recipient, reset_token):
+                with app_obj.app_context():
+                    try:
+                        send_reset_email(recipient, reset_token)
+                    except Exception as e:
+                        print(f'Ошибка отправки email сброса: {e}')
+
+            threading.Thread(
+                target=send_reset_in_background,
+                args=(app, email, token)
+            ).start()
+
         success = 'Если этот email зарегистрирован, письмо отправлено.'
     return render_template('reset_password.html', success=success, error=error)
-
 
 @app.route('/reset/<token>', methods=['GET', 'POST'])
 def reset_with_token(token):
