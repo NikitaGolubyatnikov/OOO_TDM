@@ -248,6 +248,7 @@ def register():
                     except Exception as e:
                         print(f'Ошибка отправки email подтверждения: {e}')
 
+            print("REGISTER VERSION 2")
             send_confirmation_email(email, token)
 
             success = 'Письмо для подтверждения отправлено на вашу почту!'
