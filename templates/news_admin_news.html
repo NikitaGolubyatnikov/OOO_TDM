@@ -135,7 +135,7 @@
                             <span class="text-muted">0</span>
                         {% endif %}
                         {# вместо кнопки "Детали" – иконка глазика #}
-                        <a href="{{ url_for('news_views', news_id=n.id) }}"
+                        <a href="{{ url_for('edit_news', news_id=n.id) }}"
                            class="btn btn-sm btn-info mt-1"
                            title="Просмотры">
                             <i class="bi bi-eye"></i>

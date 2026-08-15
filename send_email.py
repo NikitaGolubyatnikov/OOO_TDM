@@ -1,12 +1,26 @@
+import os
 import smtplib
 from email.mime.text import MIMEText
 
+# Определение базового адреса:
+# Если проект запущен на Render, автоматически используется его адрес.
+# Если запущен локально, подставляется localhost.
+if os.getenv("RENDER"):
+    BASE_URL = "https://ooo-tdm.onrender.com"
+else:
+    BASE_URL = "http://127.0.0.1:5000"
+
+
 def send_confirmation_email(to_email, token):
-    from_email = "ooo.tdm00@gmail.com"  # или Яндекс
+    from_email = "ooo.tdm00@gmail.com"
     password = "xgen qxfs kvfv krih"
-    confirm_link = f"https://ooo-tdm.onrender.com/confirm/{token}"
+    confirm_link = f"{BASE_URL}/confirm/{token}"
     subject = "Подтвердите регистрацию в ООО «ТДМ»"
-    body = f"Здравствуйте!\n\nДля завершения регистрации перейдите по ссылке:\n{confirm_link}\n\nЕсли вы не регистрировались — просто проигнорируйте это письмо."
+    body = (
+        f"Здравствуйте!\n\n"
+        f"Для завершения регистрации перейдите по ссылке:\n{confirm_link}\n\n"
+        f"Если вы не регистрировались — просто проигнорируйте это письмо."
+    )
     msg = MIMEText(body, "plain", "utf-8")
     msg["Subject"] = subject
     msg["From"] = from_email
@@ -15,12 +29,16 @@ def send_confirmation_email(to_email, token):
         server.login(from_email, password)
         server.send_message(msg)
 
+
 def send_reset_email(to_email, token):
-    from_email = "ooo.tdm00@gmail.com"  # или Яндекс
+    from_email = "ooo.tdm00@gmail.com"
     password = "xgen qxfs kvfv krih"
-    reset_link = f"https://ooo-tdm.onrender.com/reset/{token}"
+    reset_link = f"{BASE_URL}/reset/{token}"
     subject = "Восстановление пароля в ООО «ТДМ»"
-    body = f"Для сброса пароля перейдите по ссылке:\n{reset_link}\n\nЕсли вы не запрашивали сброс пароля — просто проигнорируйте это письмо."
+    body = (
+        f"Для сброса пароля перейдите по ссылке:\n{reset_link}\n\n"
+        f"Если вы не запрашивали сброс пароля — просто проигнорируйте это письмо."
+    )
     msg = MIMEText(body, "plain", "utf-8")
     msg["Subject"] = subject
     msg["From"] = from_email
@@ -28,6 +46,7 @@ def send_reset_email(to_email, token):
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(from_email, password)
         server.send_message(msg)
+
 
 def send_news_email(to_email, news_title, news_content, link):
     from_email = "ooo.tdm00@gmail.com"
@@ -48,4 +67,3 @@ def send_news_email(to_email, news_title, news_content, link):
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(from_email, password)
         server.send_message(msg)
-
