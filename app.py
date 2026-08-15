@@ -72,6 +72,10 @@ class User(db.Model):
     department = db.relationship(
         'Department', backref=db.backref('users', lazy=True)
     )
+    # Добавляем автоматическое удаление просмотров пользователя при его удалении
+    news_views = db.relationship(
+        'NewsView', backref='user', lazy=True, cascade='all, delete-orphan'
+    )
 
 
 class NewsView(db.Model):
@@ -79,10 +83,6 @@ class NewsView(db.Model):
     news_id = db.Column(db.Integer, db.ForeignKey('news.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     viewed_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    user = db.relationship(
-        'User', backref=db.backref('news_views', lazy=True), lazy=True
-    )
 
 
 class News(db.Model):
