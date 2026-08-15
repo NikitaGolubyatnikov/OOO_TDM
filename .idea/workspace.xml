@@ -5,17 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c3aaecf7-7435-423c-9d51-4a61e5fba567" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/ooo.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ooo.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/send_email.py" beforeDir="false" afterPath="$PROJECT_DIR$/send_email.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/news_admin_news.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/news_admin_news.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/instance/tdm_local.db" beforeDir="false" afterPath="$PROJECT_DIR$/instance/tdm_local.db" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/аа.py" beforeDir="false" afterPath="$PROJECT_DIR$/аа.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -36,6 +28,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Python.app.executor": "Run",
     "Python.send_email.executor": "Run",
     "Python.аа.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",

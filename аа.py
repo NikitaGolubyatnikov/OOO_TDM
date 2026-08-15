@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 import os
 import secrets
 from send_email import send_confirmation_email, send_reset_email
-from datetime import datetime
+from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 from functools import wraps
 
@@ -59,9 +59,13 @@ class News(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.now)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.utcnow() + timedelta(hours=3))
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     department_id = db.Column(db.Integer, db.ForeignKey('department.id'), nullable=True)  # может быть None (для всех)
+
+    # Каскадное удаление: при удалении новости БД сама очистит просмотры и файлы
+    views = db.relationship('NewsView', backref='news', lazy=True, cascade='all, delete-orphan')
+    files = db.relationship('NewsFile', backref='news', lazy=True, cascade='all, delete-orphan')
 
 class NewsFile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -507,8 +511,8 @@ def employee_feed():
     )
 
     news      = pagination.items
-    next_page = pagination.has_next and pagination.next_num
-    prev_page = pagination.has_prev and pagination.prev_num
+    next_page = pagination.next_num if pagination.has_next else None
+    prev_page = pagination.prev_num if pagination.has_prev else None
 
     return render_template(
         'employee_feed.html',
